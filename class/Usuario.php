@@ -1,53 +1,138 @@
 <?php 
 
-class Sql extends PDO{
+class Usuario {
 
-	private $conn;
+	private $idusuario;
+	private $deslogin;
+	private $dessenha;
+	private $dtcadastro;
 
-	public function __construct(){
+	#1A) GETTER IDUSUARIO
+	public function getIdusuario(){
 
-		$this->conn = new PDO("mysql:host=localhost;dbname=dbphp7", "root", "");
+		return $this->idusuario;
 
-	}#END public funciton __construct
+	}#END GETTER IDUSUARIO
 
+	#1B) SETTER IDUSUARIO
+	public function setIdusuario($value){
 
-	private function setParam($statement, $key, $value){
+		$this->idusuario = $value;
 
-		$statement->bindParam($key, $value);
+	}#END SETTER IDUSUARIO
 
-	}
-	#END private function setParam
+	#2A) GETTER DESLOGIN
+	public function getDeslogin(){
 
+		return $this->deslogin;
 
-	private function setParams($statement, $parameters = array()){
+	}#END GETTER DESLOGIN
 
-	foreach ($parameters as $key => $value) {
+	#2B) SETTER DESLOGIN
+	public function setDeslogin($value){
+
+		$this->deslogin = $value;
+
+	}#END SETTER DESLOGIN
+
+	#3A) GETTER DESSENHA
+	public function getDessenha(){
+
+		return $this->dessenha;
+
+	}#END GETTER DESSENHA
+
+	#3B) SETTER DESSENHA
+	public function setDessenha($value){
+
+		$this->dessenha = $value;
+
+	}#END SETTER DESSENHA0,
+
+	#4A) GETTER DTCADASTRO
+	public function getDtcadastro(){
+
+		return $this->dtcadastro;
+
+	}#END GETTER DTCADASTRO
+
+	#4B) SETTER DTCADASTRO
+	public function setDtcadastro($value){
+
+		$this->dtcadastro = $value;
+
+	}#END SETTER DTCADASTRO
+
+	public function loadById($id){
+
+		$sql = new Sql();
+		$results = $sql->select("SELECT * FROM tb_usuarios WHERE idusuario = :ID", array(
+
+			":ID"=>$id
 		
-		$this->setParam($key, $value);
+		));
+
+		if(count($results) > 0){
+			$row = $results[0];
+			$this->setIdusuario($row['idusuario']);
+			$this->setDeslogin($row['deslogin']);
+			$this->setDessenha($row['dessenha']);
+			$this->setDtcadastro(new DateTime($row['dtcadastro']));
 		}
-	}#END private function setParams
 
+	}#END loadById
 
-	public function query($rawQuery, $params = array()){
+	public static function getList(){
 
-		$stmt = $this->conn->prepare($rawQuery);
+		$sql = new Sql();
 
-		$this->setParams($stmt, $params);
+		return $sql->select("SELECT * FROM tb_usuarios ORDER BY idusuario;");
+	}#END getList
 
-		$stmt->execute();
+	public static function search($login){
 
-		return $stmt;
+		$sql = new Sql();
 
-	}#END public function query
+		return $sql->select("SELECT * FROM tb_usuarios WHERE deslogin LIKE :SEARCH ORDER BY deslogin", array(
+			':SEARCH'=>"%".$login."%"
+		));
+	}#END  search
 
-	public function select($rawQuery, $params = array()):array{
+	public function login($login, $password){
 
-		$stmt = $this->query($rawQuery, $params);
+		$sql = new Sql();
+		$results = $sql->select("SELECT * FROM tb_usuarios WHERE deslogin = :LOGIN AND dessenha = :PASSWORD", array(
 
-		return $stmt->fetchAll(PDO::FETCH_ASSOC);
+			":LOGIN"=>$login,
+			":PASSWORD"=>$password
+		
+		));
 
-	}#END public function select
+		if(count($results) > 0){
+			$row = $results[0];
+			$this->setIdusuario($row['idusuario']);
+			$this->setDeslogin($row['deslogin']);
+			$this->setDessenha($row['dessenha']);
+			$this->setDtcadastro(new DateTime($row['dtcadastro']));
+		} else{
 
-}#END class Sql
+			throw new Exception("Login ou Senha não conferem", 1);
+			
+		}
+	}#END login
+
+	public function __toString(){
+
+		return json_encode(array(
+
+			"idusuario"=>$this->getIdusuario(),
+			"deslogin"=>$this->getDeslogin(),
+			"dessenha"=>$this->getDessenha(),
+			"dtcadastro"=>$this->getDtcadastro()->format("d/m/Y H:i:s")
+
+		));
+	}#END MAGIC METHOD __toString
+
+}#END class Usuario
 
  ?>
